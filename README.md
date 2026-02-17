@@ -1,129 +1,176 @@
 # STELLAR NETWORK INTEGRATION INTO HEALTHCARE SYSTEM.
 # CarePro Medical Suite (Web3 Edition)
 
-**Powered by Stellar & Rust**
-
-CarePro is a comprehensive, enterprise-grade medical practice management application designed to streamline patient care, appointment scheduling, and billing. This next-generation version extends the platform with a robust **Web3 Cryptocurrency Payment System**, architected for maximum performance and security using **Rust** on the Stellar blockchain.
+> **The Future of Healthcare Payments: Powered by Stellar, Rust, and Soroban**
 
 ---
 
-## 🏗 System Architecture
+## 📖 Executive Summary
 
-The application follows a modern, decentralized architecture that bridges traditional web technologies (Web2) with blockchain infrastructure (Web3).
+CarePro is an enterprise-grade medical practice management platform that bridges the gap between traditional healthcare administration and the decentralized financial ecosystem. By integrating a secure, non-custodial cryptocurrency payment layer, CarePro enables healthcare providers to accept digital assets seamlessly, reducing transaction fees, eliminating chargebacks, and providing verifiable proof of payment on the blockchain.
 
-### The Rust Advantage
-
-Traditional blockchains often suffer from slow speeds and high costs. By building on **Stellar** using **Soroban** smart contracts written in **Rust**, we achieve:
-
-* **Safety**: Rust's memory safety guarantees prevent common smart contract vulnerabilities (e.g., reentrancy attacks).
-* **Performance**: Near-native execution speeds for complex payment logic.
-* **Cost-Efficiency**: Micro-pennies per transaction, making it viable for daily medical co-pays.
-
-### Core Components
-
-1. **Frontend Layer (React + TypeScript)**
-    * A responsive, type-safe UI built with **Vite** and **Tailwind CSS**.
-    * Manages patient interactions, appointment views, and wallet connections.
-    * Interacts with the blockchain via `stellar-sdk` and `freighter-api`.
-
-2. **Smart Contract Layer (Rust)**
-    * **Payment Processor**: Handles the logic for verifying amounts, checking balances, and routing funds.
-    * **Escrow & Refunds**: Securely holds funds until service verification (optional feature).
-    * **Access Control**: Rust-based modifiers ensuring only authorized admins can change configurations.
-
-3. **Blockchain Layer (Stellar)**
-    * The settlement layer for all crypto transactions.
-    * Provides the immutable ledger for payment proofs.
+This project represents a fundamental architectural shift, leveraging the **Stellar Network** capabilities and the **Rust** programming language via **Soroban** smart contracts to deliver a system that is not only secure and performant but also compliant and auditable.
 
 ---
 
-## 🚀 Key Features
+## 🏗 Technical Architecture & Design Philosophy
 
-* **Patient Management**: Electronic health records, appointment scheduling, and history.
-* **Service Orders**: Laboratory and radiology test ordering.
-* **Billing & Invoicing**: Automated invoice generation and tracking.
-* **Web3 Payments**: Secure, decentralized payment processing.
+### 1. The Soroban & Rust Foundation
 
----
+Our decision to build on **Soroban (Smart Contracts based on WASM)** using **Rust** is strategic and critical for a healthcare application:
 
-## 🔗 Web3 Integration Details
+* **Memory Safety & Crash Resilience**: Rust’s ownership model guarantees memory safety without garbage collection. In a financial context, this eliminates entire classes of bugs (like buffer overflows) that could lead to fund loss.
+* **Formal Verification**: Rust's type system allows for rigorous correctness checks at compile time. We can mathematically prove that our payment logic behaves exactly as intended before deploying to the mainnet.
+* **High-Performance Execution**: Stellar's Soroban environment executes WASM contracts at near-native speeds. This ensures that payment confirmations happen in seconds (3-5s), not minutes, which is essential for a busy medical front desk.
+* **Predictable Fees**: Unlike Ethereum's volatile gas market, Stellar's fee structure is stable and negligible (fractions of a cent), ensuring that patients aren't penalized for paying with crypto.
 
-This application is upgraded to support direct cryptocurrency payments, providing a modern, low-fee alternative to traditional banking rails.
+### 2. System Diagram
 
-### Supported Networks
+The application follows a modular, hex-agonal architecture to separate concerns:
 
-The system is multi-chain compatible, with a primary focus on:
+```mermaid
+graph TD
+    User[Patient / Admin] --> Frontend[React + Vite App]
+    
+    subgraph "Application Layer (Web2)"
+        Frontend --> Router[React Router]
+        Frontend --> State[Context API / Hooks]
+        State --> Services[Service Layer]
+    end
+    
+    subgraph "Blockchain Layer (Web3)"
+        Services --> WalletConn[Wallet Connector]
+        WalletConn --> Provider[Freighter / MetaMask]
+        Provider --> Network[Stellar / EVM Node]
+        
+        Network --> SmartContract[Soroban Rust Contract]
+        SmartContract --> Ledger[Immutable Ledger]
+    end
+    
+    subgraph "External Services"
+        Services --> Oracle[Price Oracle (CoinGecko)]
+    end
+```
 
-* **Stellar Network (XLM)**: Utilized for its near-instant transaction speeds and negligible fees. We leverage **Freighter** wallet integration and **Soroban** smart contracts (written in **Rust**) for advanced payment logic.
-* **EVM Compatibles**: Support for Ethereum, Polygon, and BSC using **MetaMask**, **WalletConnect**, and **Coinbase Wallet**.
+### 3. The Payment Journey (Data Flow)
 
-### Payment Capabilities
-
-* **Real-Time Exchange Rates**: Live USD-to-Crypto conversion via Price Oracle.
-* **Multi-Wallet Support**: Connect seamlessly with your preferred wallet provider.
-* **Transparent Fees**: Clear breakdown of network (gas) fees before confirmation.
-* **Transaction History**: Verifiable on-chain proof of payment linked directly to patient records.
-
----
-
-## 🛠 Implementation & Issues Roadmap
-
-We are following a strict, component-based implementation plan. All active development tasks, architectural decisions, and requirement breakdowns are documented in the `docs/issues` directory.
-
-👉 **[View Implementation Roadmap](./docs/issues/README.md)**
-
-Each "Issue" in the roadmap corresponds to a specific module of the system (e.g., Wallet Connector, Payment Processor, Smart Contracts) and includes:
-
-* **Detailed Requirements**: What needs to be built.
-* **Implementation Steps**: Step-by-step coding guide.
-* **Testing Scenarios**: How to verify correctness.
-
-### Breakdown of Key Modules
-
-* **Issue 01-03**: Foundation (Config, Wallet Auth, Price Feeds)
-* **Issue 04-08**: Core Logic (Rust Contracts, Payment Processing, Transaction Monitoring)
-* **Issue 09-14**: User Experience (UI Components, Admin Dashboard)
-* **Issue 15-18**: Reliability (Security, Error Handling, Testnet)
-
----
-
-## 💻 Tech Stack
-
-* **Smart Contracts**: **Rust** (Soroban), Solidity (EVM)
-* **Frontend**: React, TypeScript, Vite, Tailwind CSS
-* **Blockchain Libraries**:
-  * **Stellar**: `stellar-sdk`, `@stellar/freighter-api`, Soroban SDK (Rust)
-  * **EVM**: `ethers.js`, `@walletconnect/web3-provider`
-* **State Management**: React Context, Custom Hooks
-* **Testing**: Vitest, React Testing Library, `soroban-cli`
+1. **Invoice Generation**: The system calculates the USD cost of a service (e.g., "MRI Scan - $500").
+2. **Oracle Consultation**: It queries the `PriceOracle` to get the real-time XLM rate (e.g., $0.10/XLM).
+3. **Smart Contract Interaction**:
+    * The frontend constructs a transaction calling the `process_payment` function on the Rust smart contract.
+    * Parameters: `patient_id`, `invoice_id`, `amount_xlm`.
+4. **Signing**: The patient's **Freighter** wallet prompts for signature.
+5. **Settlement**: The Stellar network processes the transaction in ~4 seconds.
+6. **Verification**: The `TransactionMonitor` detects the `PaymentSuccess` event emitted by the contract and updates the backend database.
 
 ---
 
-## 🚦 Getting Started
+## 🛡 Security & Compliance Model
 
-1. **Install Dependencies**
+Integrating blockchain into healthcare requires a meticulous approach to security and data privacy.
+
+* **Non-Custodial Design**: CarePro **never** holds private keys. Patients retain full control of their funds until the moment of payment. This creates a "trustless" architecture where the application cannot accidentally or maliciously drain funds.
+* **Privacy-First Ledger**: While the *payment* is public on the blockchain, the *medical reason* is not. We link transactions via an opaque `invoice_hash` that connects to the private medical record off-chain. This ensures HIPAA compliance while maintaining financial auditability.
+* **Smart Contract Auditing**: Our Rust contracts undergo rigorous unit testing (using `soroban-cli test`) and are designed to be immutable once deployed, preventing "rug pulls" or unauthorized logic changes.
+* **Rate Limiting & DDoS Protection**: The API layer implements strict rate limiting on Price Oracle and RPC calls to prevent abuse and ensuring system availability.
+
+---
+
+## 🔗 Supported Networks & Wallets
+
+We believe in a multi-chain future but optimize for the best user experience.
+
+| Network | Native Asset | Wallet Support | Best For | Technology |
+| :--- | :--- | :--- | :--- | :--- |
+| **Stellar (Mainnet)** | XLM | **Freighter**, Albedo | **Daily Payments** (Low Fee, Fast) | **Rust / Soroban** |
+| Ethereum (Mainnet) | ETH | MetaMask, Coinbase | High-Value Settlements | Solidity / EVM |
+| Polygon (PoS) | MATIC | MetaMask, WalletConnect | Low-Cost EVM Compatibility | Solidity / EVM |
+
+---
+
+## 🛠 Comprehensive Implementation Roadmap
+
+We are following a strict, test-driven development (TDD) lifecycle. The project is broken down into specific "Issues," each representing a unit of work.
+
+**👉 [Access the Full Roadmap & Issue Tracker](./docs/issues/README.md)**
+
+### Phase 1: Foundation & Infrastructure
+
+* **Issue 01**: Web3 Configuration & Environment Setup (Env vars, RPCs).
+* **Issue 02**: Universal Wallet Connector (Handling Stellar & EVM providers).
+* **Issue 03**: Price Oracle Service (Caching, Failover logic).
+
+### Phase 2: Core Payment Logic (The "Rust Phase")
+
+* **Issue 04**: Payment Processor Class (The brain of the operation).
+* **Issue 05**: Transaction Monitoring & Event Listeners.
+* **Issue 06**: **Smart Contract Development (Rust)** - Writing the Soroban contracts.
+* **Issue 23**: Deployment Scripts (Automating `soroban deploy`).
+
+### Phase 3: User Experience & Integration
+
+* **Issue 09**: Wallet UI Components (Connect Button, Modal).
+* **Issue 10**: Payment Flow UI (The "Checkout" experience).
+* **Issue 11**: Transaction History (The patient's receipt ledger).
+
+### Phase 4: Administration & Security
+
+* **Issue 13**: Admin Dashboard (Revenue analytics, charts).
+* **Issue 15**: Security Hardening (Input validation, address checking).
+* **Issue 18**: Testnet Sandbox (Safe environment for training).
+
+---
+
+## 💻 Technical Stack Overview
+
+### Blockchain / Backend
+
+* **Language**: **Rust** (Stellar Soroban), Solidity (EVM)
+* **Frameworks**: Soroban SDK, Hardhat
+* **Nodes**: Stellar Horizon, Infura/Alchemy (EVM)
+
+### Frontend / Application
+
+* **Framework**: React 18
+* **Language**: TypeScript 5.x (Strict Mode)
+* **Build Tool**: Vite (Fast HMR)
+* **Styling**: Tailwind CSS (Utility-first)
+* **State**: React Context + Hooks
+* **Testing**: Vitest, React Testing Library
+
+---
+
+## 🚦 Developer Quick Start
+
+1. **System Requirements**
+    * Node.js v18+
+    * Rust Toolchain (latest stable)
+    * Soroban CLI (`cargo install --locked --version 20.0.0-rc4 soroban-cli`)
+
+2. **Installation**
 
     ```bash
+    git clone <repo-url>
+    cd carepro-medical-suite
     npm install
-    # Ensure you have Rust and Soroban CLI installed for contract development
-    cargo install --locked --version 20.0.0-rc4 soroban-cli
     ```
 
-2. **Configure Environment**
-    Copy `.env.example` to `.env.local` and add your RPC URLs and API keys.
+3. **Environment Configuration**
+    Create a `.env.local` file:
 
-3. **Run Development Server**
+    ```env
+    VITE_RPC_URL_STELLAR="https://soroban-testnet.stellar.org"
+    VITE_SOROBAN_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
+    VITE_WALLET_CONNECT_ID="your_project_id"
+    ```
+
+4. **Running the App**
 
     ```bash
     npm run dev
     ```
 
-4. **Build for Production**
-
-    ```bash
-    npm run build
-    ```
-
 ## 📄 License
 
-Proprietary - CarePro Medical Suite
+**Proprietary Software** - Verification and modifications are restricted to authorized personnel of the CarePro development team.
+
